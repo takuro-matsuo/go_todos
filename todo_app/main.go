@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	fmt.Println(models.Db)
+	// fmt.Println(models.Db)
 
 	u := &models.User{}
 	u.Name = "test"
@@ -14,4 +14,12 @@ func main() {
 	u.PassWord = "testtest"
 	fmt.Println(u)
 	u.CreateUser()
+
+	u2, _ := models.GetUser(1)
+	fmt.Println(u2)
+	u2.Name = "Test2"
+	u2.Email = "test2@example.com"
+	u2.UpdateUser()
+	u2, _ = models.GetUser(1)
+	fmt.Println(u2)
 }
