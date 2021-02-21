@@ -41,7 +41,7 @@ func GetUser(id int) (user User, err error) {
 								, name
 								, email
 								, password
-								, created_at 
+								, created_at
 								FROM USERS WHERE id = ?`
 	err = Db.QueryRow(cmd, id).Scan(
 		&user.ID,
@@ -55,10 +55,20 @@ func GetUser(id int) (user User, err error) {
 }
 
 func (u *User) UpdateUser() (err error) {
-	cmd := `UPDATE users set  name = ?
+	cmd := `UPDATE users SET  name = ?
 													, email = ?
-													where id = ?`
+													WHERE id = ?`
 	_, err = Db.Exec(cmd, u.Name, u.Email, u.ID)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	return err
+}
+
+func (u *User) DeleteUser() (err error) {
+	cmd := `DELETE FROM users 
+								WHERE id = ?`
+	_, err = Db.Exec(cmd, u.ID)
 	if err != nil {
 		log.Fatalln(err)
 	}
