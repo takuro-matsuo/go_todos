@@ -12,13 +12,13 @@ type Todo struct {
 	CreatedAt time.Time
 }
 
-func (u *User) CreateTodo(context string) (err error) {
-	cmd := `INSERT INTO todos (
-										content
-									, user_id
-									, created_at
-									) VALUES (?, ?, ?)`
-	_, err = Db.Exec(cmd, context, u.ID, time.Now())
+func (u *User) CreateTodo(content string) (err error) {
+	cmd := `insert into todos (
+		content, 
+		user_id, 
+		created_at) values (?, ?, ?)`
+
+	_, err = Db.Exec(cmd, content, u.ID, time.Now())
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -26,38 +26,31 @@ func (u *User) CreateTodo(context string) (err error) {
 }
 
 func GetTodo(id int) (todo Todo, err error) {
-	cmd := `SELECT  id
-								, content
-								, user_id
-								, created_at
-								FROM todos WHERE id = ?`
+	cmd := `select id, content, user_id, created_at from todos
+	where id = ?`
+	todo = Todo{}
+
 	err = Db.QueryRow(cmd, id).Scan(
 		&todo.ID,
 		&todo.Content,
 		&todo.UserID,
-		&todo.CreatedAt,
-	)
+		&todo.CreatedAt)
+
 	return todo, err
 }
 
 func GetTodos() (todos []Todo, err error) {
-	cmd := `SELECT  id
-								, content
-								, user_id
-								, created_at
-								FROM todos`
+	cmd := `select id, content, user_id, created_at from todos`
 	rows, err := Db.Query(cmd)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	for rows.Next() {
 		var todo Todo
-		err = rows.Scan(
-			&todo.ID,
+		err = rows.Scan(&todo.ID,
 			&todo.Content,
 			&todo.UserID,
-			&todo.CreatedAt,
-		)
+			&todo.CreatedAt)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -69,12 +62,9 @@ func GetTodos() (todos []Todo, err error) {
 }
 
 func (u *User) GetTodosByUser() (todos []Todo, err error) {
-	cmd := `SELECT  id
-								, content
-								, user_id
-								, created_at
-								FROM todos
-								WHERE user_id = ?`
+	cmd := `select id, content, user_id, created_at from todos
+	where user_id = ?`
+
 	rows, err := Db.Query(cmd, u.ID)
 	if err != nil {
 		log.Fatalln(err)
@@ -85,8 +75,8 @@ func (u *User) GetTodosByUser() (todos []Todo, err error) {
 			&todo.ID,
 			&todo.Content,
 			&todo.UserID,
-			&todo.CreatedAt,
-		)
+			&todo.CreatedAt)
+
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -97,10 +87,9 @@ func (u *User) GetTodosByUser() (todos []Todo, err error) {
 	return todos, err
 }
 
-func (t *Todo) UpdateTodo() (err error) {
-	cmd := `UPDATE todos SET  content = ?
-													, user_id = ?
-													WHERE id = ?`
+func (t *Todo) UpdateTodo() error {
+	cmd := `update todos set content = ?, user_id = ? 
+	where id = ?`
 	_, err = Db.Exec(cmd, t.Content, t.UserID, t.ID)
 	if err != nil {
 		log.Fatalln(err)
@@ -108,9 +97,8 @@ func (t *Todo) UpdateTodo() (err error) {
 	return err
 }
 
-func (t *Todo) DeleteTodo() (err error) {
-	cmd := `DELETE FROM todos 
-								WHERE id = ?`
+func (t *Todo) DeleteTodo() error {
+	cmd := `delete from todos where id = ?`
 	_, err = Db.Exec(cmd, t.ID)
 	if err != nil {
 		log.Fatalln(err)
