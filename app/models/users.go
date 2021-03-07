@@ -35,7 +35,7 @@ func (u *User) CreateUser() (err error) {
 		createUUID(),
 		u.Name,
 		u.Email,
-		u.PassWord,
+		Encrypt(u.PassWord),
 		time.Now())
 
 	if err != nil {
@@ -105,8 +105,8 @@ func (u *User) CreateSession() (session Session, err error) {
 		log.Println(err)
 	}
 
-	cmd2 := `select id, uuid, email, user_id, created_at
-	 from sessions where user_id = ? and email = ?`
+	cmd2 := `select id, uuid, email, user_id, created_at 
+				from sessions where user_id = ? and email = ?`
 
 	err = Db.QueryRow(cmd2, u.ID, u.Email).Scan(
 		&session.ID,
@@ -116,4 +116,47 @@ func (u *User) CreateSession() (session Session, err error) {
 		&session.CreatedAt)
 
 	return session, err
+}
+
+func (sess *Session) CheckSession() (valid bool, err error) {
+	cmd := `select id, uuid, email, user_id, created_at from sessions where uuid = ?`
+	err = Db.QueryRow(cmd, sess.UUID).Scan(
+		&sess.ID,
+		&sess.UUID,
+		&sess.Email,
+		&sess.UserID,
+		&sess.CreatedAt)
+
+	if err != nil {
+		valid = false
+		return
+	}
+	if sess.ID != 0 {
+		valid = true
+	}
+	return valid, err
+}
+
+func (sess *Session) DeleteSessionByUUID() (err error) {
+	cmd := "delete from sessions where uuid = ?"
+	_, err = Db.Exec(cmd, sess.UUID)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	return err
+}
+
+func (sess *Session) GetUserBySession() (user User, err error) {
+	user = User{}
+	cmd := `select id, uuid, name, email, password, created_at
+	from users where id = ?`
+	err = Db.QueryRow(cmd, sess.UserID).Scan(
+		&user.ID,
+		&user.UUID,
+		&user.Name,
+		&user.Email,
+		&user.PassWord,
+		&user.CreatedAt)
+
+	return user, err
 }
